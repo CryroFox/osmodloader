@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Threading;
 using System.IO;
+using System.ComponentModel;
 
 namespace OneShot_ModLoader
 {
@@ -57,17 +58,32 @@ namespace OneShot_ModLoader
 
         public void ResetProgress() => progress.Value = 0;
 
-        public async void ReportProgress(object sender, EventArgs e)
+        public void SetMaximumProgress(int amount) => progress.Maximum = amount;
+
+        public async void ReportProgress(object sender, ProgressChangedEventArgs e)
         {
-            await UpdateProgress();
+            // update progress bar value
+            if (progress.Value < progress.Maximum) progress.Value += e.ProgressPercentage;
+            
+            // then process user state
+            if (e.UserState.GetType() == typeof(Action))
+            {
+                Action a = (Action)e.UserState;
+                a.Invoke();
+            }
+            else
+            {
+                await SetLoadingStatus(e.UserState.ToString());
+            }
         }
 
+        [Obsolete("deprecate this later")]
         public async Task UpdateProgress()
         {
             if (progress.Value < progress.Maximum) progress.Value++;
             await Task.Delay(0);
         }
-
+        
         public async Task SetLoadingStatus(string status)
         {
             try

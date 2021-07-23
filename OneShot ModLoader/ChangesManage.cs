@@ -58,8 +58,8 @@ namespace OneShot_ModLoader
                 List<string> activeMods = new List<string>();
 
                 // TreeNode t in ActiveMods.instance.Nodes
-                await loadingBar.SetLoadingStatus("creating temp directory");
-                
+                backgroundWorker.ReportProgress(0, "creating temp directory");
+
                 DirectoryInfo tempDir = new DirectoryInfo(Static.GetOrCreateTempDirectory().FullName + "\\MODCOPY\\");
                 DirectoryInfo baseOs = new DirectoryInfo(Static.baseOneShotPath);
 
@@ -74,8 +74,8 @@ namespace OneShot_ModLoader
                 // now we do the cool stuff
                 foreach (TreeNode t in ActiveMods.instance.Nodes)
                 {
-                    await loadingBar.SetLoadingStatus($"mod {t.Index + 1} out of {ActiveMods.instance.Nodes.Count}: {t.Text}");
-                    loadingBar.ResetProgress();
+                    backgroundWorker.ReportProgress(0, $"mod {t.Index + 1} out of {ActiveMods.instance.Nodes.Count}: {t.Text}");
+                    backgroundWorker.ReportProgress(0, new Action(loadingBar.ResetProgress));
 
                     activeMods.Add(t.Text);
 
@@ -86,6 +86,7 @@ namespace OneShot_ModLoader
                     FileInfo[] files = mod.GetFiles("*", SearchOption.AllDirectories);
 
                     // set the maximum value of the progress bar to the sum of the directories/files
+                    backgroundWorker.ReportProgress(0, new Action<int>(loadingBar.SetMaximumProgress)); // SET THE PARAMETER
                     loadingBar.progress.Maximum = directories.Length + files.Length;
 
                     Console.WriteLine("mod {0} out of {1}: {2}", t.Index + 1, ActiveMods.instance.Nodes.Count, mod.FullName);
@@ -101,9 +102,9 @@ namespace OneShot_ModLoader
                             Directory.CreateDirectory(create);
 
                             // update progress
-                            await loadingBar.UpdateProgress();
+                            backgroundWorker.ReportProgress(1);
                             if (loadingBar.displayType == LoadingBar.LoadingBarType.Detailed)
-                                await loadingBar.SetLoadingStatus(string.Format("mod {0} out of {1}: {2}", t.Index + 1, ActiveMods.instance.Nodes.Count, create));
+                                backgroundWorker.ReportProgress(0, $"mod {t.Index + 1} out of {ActiveMods.instance.Nodes.Count}: {create}");
                         }
                     }
                     
@@ -118,16 +119,16 @@ namespace OneShot_ModLoader
                             f.CopyTo(destination, true);
 
                             // update progress
-                            await loadingBar.UpdateProgress();
+                            backgroundWorker.ReportProgress(1);
                             if (loadingBar.displayType == LoadingBar.LoadingBarType.Detailed)
-                                await loadingBar.SetLoadingStatus(string.Format("mod {0} out of {1}: {2}", t.Index + 1, ActiveMods.instance.Nodes.Count, f.FullName));
+                                backgroundWorker.ReportProgress(0, $"mod {t.Index + 1} out of {ActiveMods.instance.Nodes.Count}: {f.FullName}");
                         }
                     }
                 }
                 Console.WriteLine("finished up in temp");
 
-                await loadingBar.SetLoadingStatus("finalizing, please wait");
-                loadingBar.ResetProgress();
+                backgroundWorker.ReportProgress(0, "finalizing, please wait");
+                backgroundWorker.ReportProgress(0, new Action(loadingBar.ResetProgress));
 
                 // now we copy everything in temp to the oneshot path
 
@@ -149,9 +150,9 @@ namespace OneShot_ModLoader
                         Directory.CreateDirectory(create);
 
                         // update progress
-                        await loadingBar.UpdateProgress();
+                        backgroundWorker.ReportProgress(1);
                         if (loadingBar.displayType == LoadingBar.LoadingBarType.Detailed)
-                            await loadingBar.SetLoadingStatus("final: creating directory: " + create);
+                            backgroundWorker.ReportProgress(0, "final: " + create);
                     }
                 }
 
@@ -167,14 +168,14 @@ namespace OneShot_ModLoader
                         f.CopyTo(destination, true);
 
                         // update progress
-                        await loadingBar.UpdateProgress();
+                        backgroundWorker.ReportProgress(1);
                         if (loadingBar.displayType == LoadingBar.LoadingBarType.Detailed)
-                            await loadingBar.SetLoadingStatus("final: " + destination);
+                            backgroundWorker.ReportProgress(0, "final: " + destination);
                     }
                 }
 
                 // done!
-                await loadingBar.SetLoadingStatus("almost done!");
+                backgroundWorker.ReportProgress(0, "all done!");
 
                 Console.WriteLine("finished copying files");
 
@@ -190,7 +191,7 @@ namespace OneShot_ModLoader
                 Console.Beep();
                 MessageBox.Show("All done!");
 
-                loadingBar.Dispose();
+                backgroundWorker.ReportProgress(0, new Action(loadingBar.Dispose));
 
                 Console.WriteLine("finished applying changes");
 
@@ -207,6 +208,8 @@ namespace OneShot_ModLoader
 
         public static async void DirectApply(object sender, DoWorkEventArgs e)
         {
+            return;
+            /*
             try
             {
                 // args
@@ -348,6 +351,7 @@ namespace OneShot_ModLoader
 
                 OCIForm.instance.Close();
             }
+            */
         }
 
         public static bool ConfirmValid(string modPath)

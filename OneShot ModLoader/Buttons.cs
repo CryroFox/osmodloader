@@ -382,10 +382,13 @@ namespace OneShot_ModLoader
 
             try 
             {
+                LoadingBar loadingBar = new LoadingBar(Form1.instance, LoadingBar.LoadingBarType.Efficient);
                 BackgroundWorker b = new BackgroundWorker();
                 b.DoWork += ChangesManage.Apply;
+                b.ProgressChanged += loadingBar.ReportProgress;
+                b.WorkerReportsProgress = true;
                 b.RunWorkerAsync(new ChangesManage.ApplyArgs(
-                    new LoadingBar(Form1.instance, LoadingBar.LoadingBarType.Efficient),
+                    loadingBar,
                     ref b
                 ));
             }

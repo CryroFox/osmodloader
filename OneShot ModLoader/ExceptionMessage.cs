@@ -14,12 +14,12 @@ namespace OneShot_ModLoader
 
         private static void Bruh(Exception e, bool show, string append)
         {
-            StringBuilder message = new StringBuilder(
+            string message =  
                 "An exception was encountered:\n---------------\n" +
                 e.Message + Splash() +
                 "\n---------------\n" +
-                e.ToString());
-            message.Append(append);
+                e.ToString();
+            message += "\n\n" + append;
 
             Console.WriteLine(message.ToString());
 
